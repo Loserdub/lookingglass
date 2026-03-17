@@ -6,11 +6,15 @@ import { AppState, AnalysisResult } from './types';
 import { analyzeImage } from './services/geminiService';
 import { AlertTriangle } from 'lucide-react';
 
+console.log('[App] App module loaded');
+
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  console.log('[App] Rendered with state:', appState);
 
   const convertFileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -30,6 +34,7 @@ const App: React.FC = () => {
   };
 
   const handleImageSelect = (file: File) => {
+    console.log('[App] Image selected:', file.name, file.type, file.size, 'bytes');
     setSelectedImage(file);
     setAppState(AppState.IDLE);
     setResult(null);
@@ -37,6 +42,7 @@ const App: React.FC = () => {
   };
 
   const handleClear = () => {
+    console.log('[App] Clearing selection');
     setSelectedImage(null);
     setAppState(AppState.IDLE);
     setResult(null);
@@ -46,16 +52,19 @@ const App: React.FC = () => {
   const runAnalysis = async () => {
     if (!selectedImage) return;
 
+    console.log('[App] Starting analysis for:', selectedImage.name);
     setAppState(AppState.ANALYZING);
     setError(null);
 
     try {
       const base64Data = await convertFileToBase64(selectedImage);
+      console.log('[App] Image converted to base64, calling analyzeImage...');
       const analysisData = await analyzeImage(base64Data, selectedImage.type);
+      console.log('[App] Analysis complete:', analysisData);
       setResult(analysisData);
       setAppState(AppState.SUCCESS);
     } catch (err: any) {
-      console.error(err);
+      console.error('[App] Analysis failed with error:', err);
       setAppState(AppState.ERROR);
       setError(err.message || "An unexpected error occurred during analysis.");
     }
